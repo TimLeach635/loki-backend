@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Matches</h2>
+  <ul>
+    {% for match in matches %}
+    <li>{{ match[0] }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
