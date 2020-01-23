@@ -4,14 +4,21 @@ from app import app, db
 @app.route('/')
 @app.route('/index/')
 def index():
-    # Query database
-    scoreboard = db.session.execute('SELECT first_name, last_name FROM players LIMIT 5;')
+    scoreboard = db.session.execute('''
+    SELECT
+        players.first_name || ' ' || players.last_name AS player_name,
+        COUNT (plays.did_win) AS player_wins
+    FROM
+        players LEFT JOIN plays ON players.player_id = plays.player_id
+    WHERE
+        plays.did_win = TRUE
+    GROUP BY
+        player_name;
+    ''')
 
-    # Convert result object to list of strings
     scoreboard_tuple_list = scoreboard.fetchall()
-    scoreboard_string_list = map(lambda row: ' '.join(row), scoreboard_tuple_list)
+    scoreboard_string_list = map(lambda row: {'player_name': row[0], 'player_wins': row[1]}, scoreboard_tuple_list)
 
-    # Return JSON
     return jsonify({'scoreboard': list(scoreboard_string_list)})
 
 @app.route('/players/', methods=['GET', 'POST'])
