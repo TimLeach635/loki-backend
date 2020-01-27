@@ -1,6 +1,8 @@
 from flask import jsonify, request
 from app import app, db
 from app.models.player import Player
+from app.models.game import Game
+from app.models.match import Match
 
 @app.route('/')
 @app.route('/index/')
@@ -51,42 +53,44 @@ def players(player_id=None):
             'last_name': new_player.last_name
         }), 201
 
-@app.route('/games/')
+@app.route('/games/', methods=['GET', 'POST'])
 @app.route('/games/<game_id>/')
 def games(game_id=None):
     if request.method == 'GET':
         if game_id:
-            game = db.session.execute('SELECT game_id, name FROM games WHERE game_id = :game_id;', {'game_id': game_id}).first()
-            return jsonify({'game_id': game[0], 'name': game[1]})
+            game = Game.query.filter_by(game_id=game_id).first()
+            return jsonify({'game_id': game.game_id, 'name': game.name}), 200
         else:
-            games = db.session.execute('SELECT game_id, name FROM games;')
-            return jsonify({'games': list(map(lambda game: {'game_id': game[0], 'name': game[1]}, games))})
+            games = Game.query.order_by(Game.game_id).all()
+            return jsonify({'games': list(map(lambda game: {
+                'game_id': game.game_id,
+                'name': game.name
+                }, games))}), 200
+    elif request.method == 'POST':
+        post_json = request.get_json()
+        new_game = Game(name=post_json['name'])
+        db.session.add(new_game)
+        db.session.commit()
+        return jsonify({
+            'game_id': new_game.game_id,
+            'name': new_game.name
+        }), 201
 
-@app.route('/matches/')
+@app.route('/matches/', methods=['GET', 'POST'])
 @app.route('/matches/<match_id>/')
 def matches(match_id=None):
     if request.method == 'GET':
         if match_id:
-            match = db.session.execute(
-                '''
-                SELECT
-                    matches.match_id AS match_id,
-                    matches.date AS match_date,
-                    games.name AS game_name
-                FROM
-                    matches LEFT JOIN games ON matches.game_id = games.game_id
-                WHERE
-                    match_id = :match_id;
-                ''', {'match_id': match_id}).first()
-            return jsonify({'match_id': match[0], 'match_date': match[1], 'game_name': match[2]})
+            match = Match.query.filter_by(match_id=match_id).first()
+            return jsonify({
+                'match_id': match.match_id,
+                'match_date': match.date,
+                'game_id': match.game.game_id,
+                'game_name': match.game.name})
         else:
-            matches = db.session.execute(
-                '''
-                SELECT
-                    matches.match_id AS match_id,
-                    matches.date AS match_date,
-                    games.name AS game_name
-                FROM
-                    matches LEFT JOIN games ON matches.game_id = games.game_id;
-                ''', {'match_id': match_id})
-            return jsonify({'matches': list(map(lambda match: {'match_id': match[0], 'match_date': match[1], 'game_name': match[2]}, matches))})
+            matches = Match.query.order_by(Match.match_id).all()
+            return jsonify({'matches': list(map(lambda match: {
+                'match_id': match.match_id,
+                'match_date': match.date,
+                'game_id': match.game.game_id,
+                'game_name': match.game.name}, matches))})
