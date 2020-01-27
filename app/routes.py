@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from app import app, db
+from app.models.player import Player
 
 @app.route('/')
 @app.route('/index/')
@@ -26,11 +27,29 @@ def index():
 def players(player_id=None):
     if request.method == 'GET':
         if player_id:
-            player = db.session.execute('SELECT player_id, first_name, last_name FROM players WHERE player_id = :player_id;', {'player_id': player_id}).first()
-            return jsonify({'player_id': player[0], 'first_name': player[1], 'last_name': player[2]})
+            player = Player.query.filter_by(player_id=player_id).first()
+            return jsonify({
+                'player_id': player.player_id,
+                'first_name': player.first_name,
+                'last_name': player.last_name
+            }), 200
         else:
-            players = db.session.execute('SELECT player_id, first_name, last_name FROM players;')
-            return jsonify({'players': list(map(lambda player: {'player_id': player[0], 'first_name': player[1], 'last_name': player[2]}, players))})
+            players = Player.query.order_by(Player.player_id).all()
+            return jsonify({'players': list(map(lambda player: {
+                'player_id': player.player_id,
+                'first_name': player.first_name,
+                'last_name': player.last_name
+                }, players))}), 200
+    elif request.method == 'POST':
+        post_json = request.get_json()
+        new_player = Player(first_name=post_json['first_name'], last_name=post_json['last_name'])
+        db.session.add(new_player)
+        db.session.commit()
+        return jsonify({
+            'player_id': new_player.player_id,
+            'first_name': new_player.first_name,
+            'last_name': new_player.last_name
+        }), 201
 
 @app.route('/games/')
 @app.route('/games/<game_id>/')
