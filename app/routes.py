@@ -111,11 +111,57 @@ def matches(match_id=None):
                 'match_id': match.match_id,
                 'match_date': match.date,
                 'game_id': match.game.game_id,
-                'game_name': match.game.name})
+                'game_name': match.game.name,
+                'players': list(map(lambda play: {
+                    'player_id': play.player_id,
+                    'first_name': play.player.first_name,
+                    'last_name': play.player.last_name,
+                    'did_win': play.did_win
+                }, match.plays))
+            })
         else:
             matches = Match.query.order_by(Match.match_id).all()
-            return jsonify({'matches': list(map(lambda match: {
-                'match_id': match.match_id,
-                'match_date': match.date,
-                'game_id': match.game.game_id,
-                'game_name': match.game.name}, matches))})
+            return jsonify({'matches':
+                list(map(lambda match: {
+                    'match_id': match.match_id,
+                    'match_date': match.date,
+                    'game_id': match.game.game_id,
+                    'game_name': match.game.name,
+                    'players': list(map(lambda play: {
+                            'player_id': play.player_id,
+                            'first_name': play.player.first_name,
+                            'last_name': play.player.last_name,
+                            'did_win': play.did_win
+                        }, match.plays))
+                }, matches))
+            })
+    elif request.method == 'POST':
+        post_json = request.get_json()
+        new_match = Match(game_id=post_json['game_id'], date=post_json['date'])
+        db.session.add(new_match)
+        db.session.commit()
+
+        if 'winner_ids' in post_json.keys():
+            for winner_id in post_json['winner_ids']:
+                new_play = Play(match_id=new_match.match_id, player_id=winner_id, did_win=True)
+                db.session.add(new_play)
+            db.session.commit()
+        
+        if 'non_winner_ids' in post_json.keys():
+            for non_winner_id in post_json['non_winner_ids']:
+                new_play = Play(match_id=new_match.match_id, player_id=non_winner_id, did_win=False)
+                db.session.add(new_play)
+            db.session.commit()
+
+        return jsonify({
+            'match_id': new_match.match_id,
+            'game_id': new_match.game_id,
+            'game_name': new_match.game.name,
+            'date': new_match.date,
+            'players': list(map(lambda play: {
+                    'player_id': play.player_id,
+                    'first_name': play.player.first_name,
+                    'last_name': play.player.last_name,
+                    'did_win': play.did_win
+                }, new_match.plays))
+        }), 201
