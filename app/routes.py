@@ -3,6 +3,7 @@ from app import app, db
 from app.models.player import Player
 from app.models.game import Game
 from app.models.match import Match
+from app.models.play import Play
 
 @app.route('/')
 @app.route('/index/')
@@ -33,14 +34,30 @@ def players(player_id=None):
             return jsonify({
                 'player_id': player.player_id,
                 'first_name': player.first_name,
-                'last_name': player.last_name
+                'last_name': player.last_name,
+                'plays': list(map(lambda play: {
+                    'play_id': play.play_id,
+                    'match_id': play.match_id,
+                    'match_date': play.match.date,
+                    'game_id': play.match.game.game_id,
+                    'game_name': play.match.game.name,
+                    'did_win': play.did_win
+                }, player.plays))
             }), 200
         else:
             players = Player.query.order_by(Player.player_id).all()
             return jsonify({'players': list(map(lambda player: {
                 'player_id': player.player_id,
                 'first_name': player.first_name,
-                'last_name': player.last_name
+                'last_name': player.last_name,
+                'plays': list(map(lambda play: {
+                    'play_id': play.play_id,
+                    'match_id': play.match_id,
+                    'match_date': play.match.date,
+                    'game_id': play.match.game.game_id,
+                    'game_name': play.match.game.name,
+                    'did_win': play.did_win
+                }, player.plays))
                 }, players))}), 200
     elif request.method == 'POST':
         post_json = request.get_json()
@@ -50,7 +67,15 @@ def players(player_id=None):
         return jsonify({
             'player_id': new_player.player_id,
             'first_name': new_player.first_name,
-            'last_name': new_player.last_name
+            'last_name': new_player.last_name,
+            'plays': list(map(lambda play: {
+                    'play_id': play.play_id,
+                    'match_id': play.match_id,
+                    'match_date': play.match.date,
+                    'game_id': play.match.game.game_id,
+                    'game_name': play.match.game.name,
+                    'did_win': play.did_win
+                }, new_player.plays))
         }), 201
 
 @app.route('/games/', methods=['GET', 'POST'])

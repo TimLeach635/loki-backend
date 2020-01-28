@@ -5,3 +5,4 @@ class Match(db.Model):
     match_id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('games.game_id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
+    plays = db.relationship('Play', backref='match', lazy=True)
