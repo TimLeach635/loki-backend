@@ -1,5 +1,6 @@
 from app import db
 
+
 class Match(db.Model):
     __tablename__ = 'matches'
     match_id = db.Column(db.Integer, primary_key=True)
