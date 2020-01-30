@@ -50,6 +50,17 @@ def players_post():
     return jsonify(player_dict(new_player)), 201
 
 
+@app.route('/players/<player_id>/', methods=['DELETE'])
+def players_delete(player_id):
+    player = Player.query.filter_by(player_id=player_id).first()
+    if player:
+        for play in player.plays:
+            db.session.delete(play)
+        db.session.delete(player)
+        db.session.commit()
+    return '', 204
+
+
 @app.route('/games/')
 @app.route('/games/<game_id>/')
 def games_get(game_id=None):
@@ -68,6 +79,19 @@ def games_post():
     db.session.add(new_game)
     db.session.commit()
     return jsonify(game_dict(new_game)), 201
+
+
+@app.route('/games/<game_id>/', methods=['DELETE'])
+def games_delete(game_id):
+    game = Game.query.filter_by(game_id=game_id).first()
+    if game:
+        for match in game.matches:
+            for play in match.plays:
+                db.session.delete(play)
+            db.session.delete(match)
+        db.session.delete(game)
+        db.session.commit()
+    return '', 204
 
 
 @app.route('/matches/')
@@ -101,3 +125,14 @@ def matches_post():
         db.session.commit()
 
     return jsonify(match_dict(new_match)), 201
+
+
+@app.route('/matches/<match_id>/', methods=['DELETE'])
+def matches_delete(match_id):
+    match = Match.query.filter_by(match_id=match_id).first()
+    if match:
+        for play in match.plays:
+            db.session.delete(play)
+        db.session.delete(match)
+        db.session.commit()
+    return '', 204
