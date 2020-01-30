@@ -5,7 +5,7 @@ from app.models.player import Player
 from app.models.game import Game
 from app.models.match import Match
 from app.models.play import Play
-from app.model_json import player_json, game_json, match_json
+from app.model_json import player_dict, game_dict, match_dict
 
 
 @app.route('/')
@@ -34,10 +34,11 @@ def index():
 def players_get(player_id=None):
     if player_id:
         player = Player.query.filter_by(player_id=player_id).first()
-        return player_json(player), 200
+        return jsonify(player_dict(player)), 200
     else:
         player_list = Player.query.order_by(Player.player_id).all()
-        return jsonify({'players': list(map(player_json, player_list))}), 200
+        player_list_dict = list(map(player_dict, player_list))
+        return jsonify({'players': player_list_dict}), 200
 
 
 @app.route('/players/', methods=['POST'])
@@ -46,7 +47,7 @@ def players_post():
     new_player = Player(first_name=post_json['first_name'], last_name=post_json['last_name'])
     db.session.add(new_player)
     db.session.commit()
-    return player_json(new_player), 201
+    return jsonify(player_dict(new_player)), 201
 
 
 @app.route('/games/')
@@ -54,10 +55,10 @@ def players_post():
 def games_get(game_id=None):
     if game_id:
         game = Game.query.filter_by(game_id=game_id).first()
-        return game_json(game), 200
+        return jsonify(game_dict(game)), 200
     else:
         game_list = Game.query.order_by(Game.game_id).all()
-        return jsonify({'games': list(map(game_json, game_list))}), 200
+        return jsonify({'games': list(map(game_dict, game_list))}), 200
 
 
 @app.route('/games/', methods=['POST'])
@@ -66,7 +67,7 @@ def games_post():
     new_game = Game(name=post_json['name'])
     db.session.add(new_game)
     db.session.commit()
-    return game_json(new_game), 201
+    return jsonify(game_dict(new_game)), 201
 
 
 @app.route('/matches/')
@@ -74,10 +75,10 @@ def games_post():
 def matches_get(match_id=None):
     if match_id:
         match = Match.query.filter_by(match_id=match_id).first()
-        return match_json(match), 200
+        return jsonify(match_dict(match)), 200
     else:
         match_list = Match.query.order_by(Match.match_id).all()
-        return jsonify({'matches': list(map(match_json, match_list))}), 200
+        return jsonify({'matches': list(map(match_dict, match_list))}), 200
 
 
 @app.route('/matches/', methods=['POST'])
@@ -99,4 +100,4 @@ def matches_post():
             db.session.add(new_play)
         db.session.commit()
 
-    return match_json(new_match), 201
+    return jsonify(match_dict(new_match)), 201

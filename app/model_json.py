@@ -1,8 +1,5 @@
-from flask import jsonify
-
-
-def player_json(player):
-    return jsonify({
+def player_dict(player):
+    return {
         'player_id': player.player_id,
         'first_name': player.first_name,
         'last_name': player.last_name,
@@ -14,18 +11,18 @@ def player_json(player):
             'game_name': play.match.game.name,
             'did_win': play.did_win
         }, player.plays))
-    })
+    }
 
 
-def game_json(game):
-    return jsonify({
+def game_dict(game):
+    return {
         'game_id': game.game_id,
         'name': game.name
-    })
+    }
 
 
-def match_json(match):
-    return jsonify({
+def match_dict(match):
+    return {
         'match_id': match.match_id,
         'match_date': match.date,
         'game_id': match.game.game_id,
@@ -36,4 +33,4 @@ def match_json(match):
             'last_name': play.player.last_name,
             'did_win': play.did_win
         }, match.plays))
-    })
+    }
