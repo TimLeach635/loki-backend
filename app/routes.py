@@ -8,32 +8,6 @@ from app.models.play import Play
 from app.model_json import player_dict, game_dict, match_dict
 
 
-@app.route("/")
-@app.route("/index/")
-def index():
-    scoreboard = db.session.execute(
-        """
-    SELECT
-        players.first_name || ' ' || players.last_name AS player_name,
-        COUNT (plays.did_win) AS player_wins
-    FROM
-        players LEFT JOIN plays ON players.player_id = plays.player_id
-    WHERE
-        plays.did_win = TRUE
-    GROUP BY
-        player_name;
-    """
-    )
-
-    scoreboard_tuple_list = scoreboard.fetchall()
-    scoreboard_string_list = map(
-        lambda row: {"player_name": row[0], "player_wins": row[1]},
-        scoreboard_tuple_list,
-    )
-
-    return jsonify({"scoreboard": list(scoreboard_string_list)})
-
-
 @app.route("/players/")
 @app.route("/players/<player_id>/")
 def players_get(player_id=None):
